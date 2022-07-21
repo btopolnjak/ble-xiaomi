@@ -15,22 +15,25 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 io.on("connection", (socket) => {
   noble.on("discover", (device) => {
-    if (device.advertisement.serviceData) {
-      console.log(device.advertisement.serviceData);
-      if (device.advertisement.serviceData[0].uuid === "181a") {
-        let time = Date.now();
-        let buffer = device.advertisement.serviceData[0].data;
-        let temperature =
-          parseInt(buffer.toString("hex").slice(12, 16), 16) / 10;
-        let humidity = parseInt(buffer.toString("hex").slice(16, 18), 16);
-        let foundSensor = {
-          sensor: device.advertisement.localName,
-          temperature: temperature,
-          humidity: humidity,
-          time: time,
-        };
-        socket.emit("message", foundSensor);
-      }
+    try {
+      if (
+        !device.advertisement.localName ||
+        device.advertisement.localName.slice(0, 4) != "ATC_"
+      )
+        return;
+      let time = Date.now();
+      let buffer = device.advertisement.serviceData[0].data;
+      let temperature = buffer.readIntBE(6, 2) / 10.0;
+      let humidity = buffer.readUInt8(8);
+      let foundSensor = {
+        sensor: device.advertisement.localName,
+        temperature: temperature,
+        humidity: humidity,
+        time: time,
+      };
+      socket.emit("message", foundSensor);
+    } catch (error) {
+      console.log(error);
     }
   });
 
