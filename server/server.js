@@ -16,8 +16,9 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 io.on("connection", (socket) => {
   noble.on("discover", (device) => {
     if (device.advertisement.serviceData) {
+      console.log(device.advertisement.serviceData);
       if (device.advertisement.serviceData[0].uuid === "181a") {
-        let time = new Date().toLocaleString("en-GB", { timeZone: "CET" });
+        let time = Date.now();
         let buffer = device.advertisement.serviceData[0].data;
         let temperature =
           parseInt(buffer.toString("hex").slice(12, 16), 16) / 10;
