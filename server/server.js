@@ -15,23 +15,45 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 io.on("connection", (socket) => {
   noble.on("discover", (device) => {
+    function prepareBuffer(buffer) {
+      let bufferArray = buffer.toString("hex").match(/.{1,2}/g);
+      let time = Date.now();
+      if (bufferArray[0] === "a4") {
+        let foundSensor = {
+          sensor: device.advertisement.localName,
+          temperature: parseInt(bufferArray.slice(6, 8).join(""), 16) / 10,
+          humidity: parseInt(bufferArray.slice(8), 16),
+          time: time,
+        };
+        return foundSensor;
+      }
+      let foundSensor = {
+        sensor: device.advertisement.localName,
+        macAddress: bufferArray
+          .slice(0, 6)
+          .reverse()
+          .join(":")
+          .toString()
+          .toUpperCase(),
+        temperature:
+          parseInt(bufferArray.slice(6, 8).reverse().join(""), 16) / 100,
+        humidity:
+          parseInt(bufferArray.slice(8, 10).reverse().join(""), 16) / 100,
+        time: time,
+      };
+      return foundSensor;
+    }
+
     try {
       if (
         !device.advertisement.localName ||
         device.advertisement.localName.slice(0, 4) != "ATC_"
       )
         return;
-      let time = Date.now();
       let buffer = device.advertisement.serviceData[0].data;
-      let temperature = buffer.readIntBE(6, 2) / 10.0;
-      let humidity = buffer.readUInt8(8);
-      let foundSensor = {
-        sensor: device.advertisement.localName,
-        temperature: temperature,
-        humidity: humidity,
-        time: time,
-      };
+      let foundSensor = prepareBuffer(buffer);
       socket.emit("message", foundSensor);
+      console.log(foundSensor);
     } catch (error) {
       console.log(error);
     }

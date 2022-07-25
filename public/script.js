@@ -2,6 +2,7 @@ const socket = io();
 const text = document.getElementById("info");
 
 socket.on("message", (data) => {
+  console.log(data);
   const root = document.getElementById("root");
   const sensorDiv = document.getElementById(`${data.sensor}`);
   const sensorTemp = document.getElementById("temp");
