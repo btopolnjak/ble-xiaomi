@@ -2,19 +2,34 @@ const socket = io();
 const text = document.getElementById("info");
 
 socket.on("message", (data) => {
-  console.log(data);
   const root = document.getElementById("root");
   const sensorDiv = document.getElementById(`${data.sensor}`);
-  const sensorTemp = document.getElementById("temp");
-  const sensorHumid = document.getElementById("humid");
-  const sensorTime = document.getElementById("time");
+  const sensorMac = document.getElementById("mac-text");
+  const sensorTemp = document.getElementById("temperature-text");
+  const sensorHumid = document.getElementById("humidity-text");
+  const sensorTime = document.getElementById("time-text");
+  const unformattedTime = new Date(data.time);
+  const formattedTime = `${unformattedTime.getHours()}:${unformattedTime.getMinutes()}`;
   if (sensorDiv) {
-    sensorTemp.innerText = `Temperatura: ${data.temperature} \u00B0C`;
-    sensorHumid.innerText = `Vlaga: ${data.humidity} %`;
-    sensorTime.innerText = `Vrijeme: ${data.time}`;
+    console.log(sensorDiv);
+    sensorMac.innerText = data.macAddress;
+    sensorTemp.innerText = data.temperature.toFixed(1);
+    sensorHumid.innerText = `${data.humidity.toFixed(0)} %`;
+    sensorTime.innerText = formattedTime;
   } else {
-    console.log("Adding", data.sensor);
-    const placeholder = `<div id="${data.sensor}"><h1 id="name">Senzor: ${data.sensor}</h1><h3 id="temp">Temperatura: ${data.temperature} \u00B0C</h3><h3 id="humid">Vlaga: ${data.humidity} %</h3><h5 id="time">Vrijeme: ${data.time}</h5></div>`;
+    const placeholder = `
+    <div id="${data.sensor}" class="sensor">
+      <div class="header-div"><p id="name-text">${
+        data.sensor
+      }</p><p id="mac-text">${data.macAddress}</p></div>
+      <div class="temperature-div"><i class="bi bi-thermometer-half"></i><span id="temperature-text">${data.temperature.toFixed(
+        1
+      )}</span></div>
+      <div class="humidity-div"><p class="small-header">HUMIDITY</p><span id="humidity-text">${data.humidity.toFixed(
+        0
+      )} %</span></div>
+      <div class="time-div"><p class="small-header">UPDATED</p><span id="time-text">${formattedTime}</span></div>
+    </div>`;
     root.insertAdjacentHTML("beforeend", placeholder);
   }
 });

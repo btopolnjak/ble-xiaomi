@@ -21,6 +21,11 @@ io.on("connection", (socket) => {
       if (bufferArray[0] === "a4") {
         let foundSensor = {
           sensor: device.advertisement.localName,
+          macAddress: bufferArray
+            .slice(0, 6)
+            .join(":")
+            .toString()
+            .toUpperCase(),
           temperature: parseInt(bufferArray.slice(6, 8).join(""), 16) / 10,
           humidity: parseInt(bufferArray.slice(8), 16),
           time: time,
